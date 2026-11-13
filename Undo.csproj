@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Version>1.0.1</Version>
+    <AssemblyName>Undo</AssemblyName>
+    <AssemblyName Condition="'$(Verification)' == 'true'">Undo.Probe</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GameRoot Condition="'$(GameRoot)' == ''">$(MSBuildThisFileDirectory)..\..\</GameRoot>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="src\**\*.cs" Exclude="src\Verification\**" Condition="'$(Verification)' != 'true'" />
+    <Compile Include="src\Verification\**\*.cs" Condition="'$(Verification)' == 'true'" />
+    <Reference Include="Undo" Condition="'$(Verification)' == 'true'"><HintPath>$(MSBuildThisFileDirectory)Release\Undo.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Foundation"><HintPath>$(MSBuildThisFileDirectory)..\Foundation\Release\Foundation.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="BepInEx"><HintPath>$(GameRoot)BepInEx\core\BepInEx.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony" Condition="'$(Verification)' == 'true'"><HintPath>$(GameRoot)BepInEx\core\0Harmony.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Assembly-CSharp" Condition="'$(Verification)' == 'true'"><HintPath>$(GameRoot)KingdomInc_Data\Managed\Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(GameRoot)KingdomInc_Data\Managed\UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine"><HintPath>$(GameRoot)KingdomInc_Data\Managed\UnityEngine.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.UI"><HintPath>$(GameRoot)KingdomInc_Data\Managed\UnityEngine.UI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.Physics2DModule"><HintPath>$(GameRoot)KingdomInc_Data\Managed\UnityEngine.Physics2DModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.UIModule"><HintPath>$(GameRoot)KingdomInc_Data\Managed\UnityEngine.UIModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.InputSystem"><HintPath>$(GameRoot)KingdomInc_Data\Managed\Unity.InputSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.TextMeshPro"><HintPath>$(GameRoot)KingdomInc_Data\Managed\Unity.TextMeshPro.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>
