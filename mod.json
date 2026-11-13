@@ -6,9 +6,9 @@
   "description": "For Kingdom Inc game version 1.0.14. Undo and redo factory edits with Ctrl+Z and Ctrl+Shift+Z.",
   "repository": {
     "platform": "GitHub",
-    "owner": "urakkaamyx",
+    "owner": "KingdomIncModding",
     "name": "KingdomInc_Undo",
-    "url": "https://github.com/urakkaamyx/KingdomInc_Undo",
+    "url": "https://github.com/KingdomIncModding/KingdomInc_Undo",
     "branch": "main",
     "visibility": "public",
     "topics": [
