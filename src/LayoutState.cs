@@ -1,14 +1,7 @@
-using KingdomFoundation.Api;
-using KingdomFoundation.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
-
-
-
-
-using UnityEngine;
+using KingdomFoundation.Api;
 
 namespace KingdomIncUndo
 {
@@ -16,58 +9,167 @@ namespace KingdomIncUndo
     {
         internal readonly GameKingdom Player;
         internal readonly GameWorkspace[] Flows;
-        internal readonly Dictionary<GameWorkspace, WorkspaceObject[]> Elements = new Dictionary<GameWorkspace, WorkspaceObject[]>();
-        internal readonly Dictionary<GameWorkspace, WorkspacePipe[]> Pipes = new Dictionary<GameWorkspace, WorkspacePipe[]>();
-        internal readonly Dictionary<GameWorkspace, WorkspaceObject[]> Decos = new Dictionary<GameWorkspace, WorkspaceObject[]>();
-        internal readonly Dictionary<WorkspaceObject, ElementState> ElementData = new Dictionary<WorkspaceObject, ElementState>();
-        internal readonly Dictionary<WorkspacePipe, PipeState> PipeData = new Dictionary<WorkspacePipe, PipeState>();
-        internal readonly Dictionary<WorkspaceObject, string> DecoData = new Dictionary<WorkspaceObject, string>();
+        internal readonly WorkspaceSnapshot[] Workspaces;
+        internal readonly long EstimatedDeltaBytes;
 
-        internal LayoutState(GameKingdom player)
+        internal LayoutState(GameKingdom player, LayoutState previous = null)
         {
             Player = player;
             Flows = player.Workspaces.ToArray();
-            foreach (var flow in Flows)
+            Workspaces = new WorkspaceSnapshot[Flows.Length];
+            bool canShare = previous != null && ReferenceEquals(Player, previous.Player) && Flows.SequenceEqual(previous.Flows);
+            long totalBytes = Flows.Length * 8L + 64L;
+            for (int i = 0; i < Flows.Length; i++)
             {
-                Elements.Add(flow, flow.Buildings.ToArray());
-                Pipes.Add(flow, flow.Pipes.ToArray());
-                Decos.Add(flow, flow.Decorations.ToArray());
-                foreach (var element in flow.Buildings) ElementData.Add(element, new ElementState(element));
-                foreach (var pipe in flow.Pipes) PipeData.Add(pipe, new PipeState(pipe));
-                foreach (var deco in flow.Decorations) DecoData.Add(deco, FoundationApi.WorkspaceAccess.Serialize(deco).ToString());
+                Workspaces[i] = WorkspaceSnapshot.Capture(Flows[i], canShare ? previous.Workspaces[i] : null, out long wsBytes);
+                totalBytes += wsBytes;
             }
+            EstimatedDeltaBytes = totalBytes;
         }
 
         internal bool SameFlows(GameKingdom player) => ReferenceEquals(Player, player) && Flows.SequenceEqual(player.Workspaces);
 
         internal bool SameLayout(LayoutState other)
         {
+            if (ReferenceEquals(this, other)) return true;
             if (!ReferenceEquals(Player, other.Player) || !Flows.SequenceEqual(other.Flows)) return false;
-            foreach (var flow in Flows)
-                if (!Elements[flow].SequenceEqual(other.Elements[flow]) || !Pipes[flow].SequenceEqual(other.Pipes[flow]) ||
-                    !Decos[flow].SequenceEqual(other.Decos[flow])) return false;
-            return ElementData.All(p => p.Value.Same(other.ElementData[p.Key])) &&
-                   PipeData.All(p => p.Value.Same(other.PipeData[p.Key])) &&
-                   DecoData.All(p => p.Value == other.DecoData[p.Key]);
+            for (int i = 0; i < Workspaces.Length; i++)
+                if (!Workspaces[i].SameWorkspace(other.Workspaces[i])) return false;
+            return true;
         }
 
-        internal IEnumerable<WorkspacePort> IO => ElementData.Values.SelectMany(e => e.Inputs.Cast<WorkspacePort>().Concat(e.Outputs));
+        internal IEnumerable<WorkspaceObject> AllElements => Workspaces.SelectMany(w => w.Elements);
+        internal IEnumerable<WorkspacePipe> AllPipes => Workspaces.SelectMany(w => w.Pipes);
+        internal IEnumerable<WorkspaceObject> AllDecos => Workspaces.SelectMany(w => w.Decos);
+        internal IEnumerable<WorkspacePort> IO => Workspaces.SelectMany(w => w.IO);
+
+        internal bool TryGetElement(WorkspaceObject item, out int workspaceIndex, out ElementState state, out Dictionary<string, object> extensions)
+        {
+            for (int i = 0; i < Workspaces.Length; i++)
+            {
+                if (Workspaces[i].ElementData.TryGetValue(item, out state))
+                {
+                    workspaceIndex = i;
+                    extensions = null;
+                    Workspaces[i].ExtensionData?.TryGetValue(item, out extensions);
+                    return true;
+                }
+            }
+            workspaceIndex = -1;
+            state = null;
+            extensions = null;
+            return false;
+        }
+
+        internal bool TryGetPipe(WorkspacePipe pipe, out int workspaceIndex, out PipeState state)
+        {
+            for (int i = 0; i < Workspaces.Length; i++)
+            {
+                if (Workspaces[i].PipeData.TryGetValue(pipe, out state))
+                {
+                    workspaceIndex = i;
+                    return true;
+                }
+            }
+            workspaceIndex = -1;
+            state = null;
+            return false;
+        }
+
+        internal bool TryGetDeco(WorkspaceObject deco, out int workspaceIndex, out DecoState state, out Dictionary<string, object> extensions)
+        {
+            for (int i = 0; i < Workspaces.Length; i++)
+            {
+                if (Workspaces[i].DecoData.TryGetValue(deco, out state))
+                {
+                    workspaceIndex = i;
+                    extensions = null;
+                    Workspaces[i].ExtensionData?.TryGetValue(deco, out extensions);
+                    return true;
+                }
+            }
+            workspaceIndex = -1;
+            state = null;
+            extensions = null;
+            return false;
+        }
 
         internal void RestoreModel(LayoutState current)
         {
-            // Disconnect first; reconnect only after every building's IO is back.
-            foreach (var io in current.IO.Concat(IO).Distinct()) io.SetConnectedPipe(null);
-            foreach (var flow in Flows)
+            bool flowsMatch = current != null && ReferenceEquals(Player, current.Player) && Flows.SequenceEqual(current.Flows);
+            if (!flowsMatch)
             {
-                flow.SetBuildings(Elements[flow]);
-                flow.SetPipes(Pipes[flow]);
-                flow.SetDecorations(Decos[flow]);
+                if (current != null)
+                    foreach (var io in current.IO.Concat(IO).Distinct()) io.SetConnectedPipe(null);
+                else
+                    foreach (var io in IO.Distinct()) io.SetConnectedPipe(null);
+
+                for (int i = 0; i < Flows.Length; i++)
+                {
+                    var flow = Flows[i];
+                    var ws = Workspaces[i];
+                    flow.SetBuildings(ws.Elements);
+                    flow.SetPipes(ws.Pipes);
+                    flow.SetDecorations(ws.Decos);
+                    foreach (var pair in ws.ElementData)
+                    {
+                        pair.Value.Restore(pair.Key);
+                        if (ws.ExtensionData != null && ws.ExtensionData.TryGetValue(pair.Key, out var ext))
+                            UndoApi.RestoreExtensions(pair.Key, ext);
+                    }
+                    foreach (var pair in ws.PipeData) pair.Value.Restore(pair.Key);
+                    foreach (var pair in ws.DecoData)
+                    {
+                        pair.Value.Restore(pair.Key);
+                        if (ws.ExtensionData != null && ws.ExtensionData.TryGetValue(pair.Key, out var ext))
+                            UndoApi.RestoreExtensions(pair.Key, ext);
+                    }
+                }
+                return;
             }
-            foreach (var pair in ElementData) pair.Value.Restore(pair.Key);
-            foreach (var pair in PipeData) pair.Value.Restore(pair.Key);
-            foreach (var pair in DecoData)
+
+            // Disconnect only IO ports belonging to modified workspaces before restoring element IO & pipes.
+            for (int i = 0; i < Flows.Length; i++)
             {
-                pair.Key.ApplyDecorationData(JsonValue.Parse(pair.Value));
+                var targetWs = Workspaces[i];
+                var currentWs = current.Workspaces[i];
+                if (ReferenceEquals(targetWs, currentWs)) continue;
+                foreach (var io in currentWs.IO.Concat(targetWs.IO).Distinct())
+                    io.SetConnectedPipe(null);
+            }
+
+            for (int i = 0; i < Flows.Length; i++)
+            {
+                var flow = Flows[i];
+                var targetWs = Workspaces[i];
+                var currentWs = current.Workspaces[i];
+                if (ReferenceEquals(targetWs, currentWs)) continue;
+
+                flow.SetBuildings(targetWs.Elements);
+                flow.SetPipes(targetWs.Pipes);
+                flow.SetDecorations(targetWs.Decos);
+
+                foreach (var pair in targetWs.ElementData)
+                {
+                    bool sameElem = currentWs.ElementData.TryGetValue(pair.Key, out var curElem) && pair.Value.Same(curElem);
+                    bool sameExt = targetWs.ObjectExtensionsEqual(currentWs, pair.Key, out _);
+                    if (!sameElem) pair.Value.Restore(pair.Key);
+                    if (!sameExt && targetWs.ExtensionData != null && targetWs.ExtensionData.TryGetValue(pair.Key, out var ext))
+                        UndoApi.RestoreExtensions(pair.Key, ext);
+                }
+
+                // Reconnect all pipes in modified workspaces because their endpoint IO was cleared above.
+                foreach (var pair in targetWs.PipeData)
+                    pair.Value.Restore(pair.Key);
+
+                foreach (var pair in targetWs.DecoData)
+                {
+                    bool sameDeco = currentWs.DecoData.TryGetValue(pair.Key, out var curDeco) && pair.Value.Same(curDeco);
+                    bool sameExt = targetWs.ObjectExtensionsEqual(currentWs, pair.Key, out _);
+                    if (!sameDeco) pair.Value.Restore(pair.Key);
+                    if (!sameExt && targetWs.ExtensionData != null && targetWs.ExtensionData.TryGetValue(pair.Key, out var ext))
+                        UndoApi.RestoreExtensions(pair.Key, ext);
+                }
             }
         }
     }

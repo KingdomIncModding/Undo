@@ -1,7 +1,7 @@
 {
   "id": "urakka.kingdominc.undo",
   "name": "Undo",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": "Urakka",
   "description": "For Kingdom Inc game version 1.0.14. Undo and redo factory edits with Ctrl+Z and Ctrl+Shift+Z.",
   "repository": {
@@ -17,7 +17,7 @@
       "undo-redo",
       "quality-of-life"
     ],
-    "latestTag": null
+    "latestTag": "v1.0.1"
   },
   "distribution": {
     "nexus": {
@@ -36,8 +36,9 @@
         {
           "name": "Foundation",
           "url": "https://www.nexusmods.com/kingdominc/mods/18",
-          "minimumVersion": "0.14.0",
-          "type": "nexus"
+          "minimumVersion": "0.14.4",
+          "type": "nexus",
+          "fileId": 8358756
         }
       ],
       "tags": [
@@ -62,7 +63,7 @@
     "gameIntegration": "Foundation"
   },
   "publishing": {
-    "githubReleases": null,
+    "githubReleases": "https://github.com/KingdomIncModding/Undo/releases/tag/v1.0.1",
     "nexusMods": true,
     "archivePreviousReleases": false
   }

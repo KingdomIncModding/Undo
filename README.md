@@ -1,6 +1,6 @@
 # Undo
 
-**Current release: 1.0.1 — for Kingdom Inc game version 1.0.14.**
+**Current release: 1.0.2 — for Kingdom Inc game version 1.0.14.**
 
 Undo and redo factory edits with **Ctrl+Z** and **Ctrl+Shift+Z**.
 
@@ -26,7 +26,7 @@ The game developer has stated that built-in Undo/Redo is planned for a future up
 
 ## Requirements and installation
 
-Kingdom Inc for Windows with BepInEx 5 and its bundled Harmony. Tested with game version **1.0.14** and **BepInEx 5.4.23.6**. [Foundation](https://www.nexusmods.com/kingdominc/mods/18) 0.14.0 or newer is required. Better Deconstruct is optional.
+Kingdom Inc for Windows with BepInEx 5 and its bundled Harmony. Tested with game version **1.0.14** and **BepInEx 5.4.23.6**. [Foundation](https://www.nexusmods.com/kingdominc/mods/18) 0.14.4 or newer is required. Better Deconstruct is optional.
 
 Close the game and extract the archive into the Kingdom Inc folder. The installed files are `BepInEx/plugins/Undo/Undo.dll` and `BepInEx/plugins/Undo/mod.json`.
 

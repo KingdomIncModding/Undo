@@ -2,17 +2,19 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <AssemblyName>Undo</AssemblyName>
     <AssemblyName Condition="'$(Verification)' == 'true'">Undo.Probe</AssemblyName>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <GameRoot Condition="'$(GameRoot)' == ''">$(MSBuildThisFileDirectory)..\..\</GameRoot>
+    <FoundationDll Condition="'$(FoundationDll)' == '' And Exists('$(MSBuildThisFileDirectory)..\Foundation\Release\Foundation.dll')">$(MSBuildThisFileDirectory)..\Foundation\Release\Foundation.dll</FoundationDll>
+    <FoundationDll Condition="'$(FoundationDll)' == ''">$(GameRoot)BepInEx\plugins\Foundation\Foundation.dll</FoundationDll>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="src\**\*.cs" Exclude="src\Verification\**" Condition="'$(Verification)' != 'true'" />
     <Compile Include="src\Verification\**\*.cs" Condition="'$(Verification)' == 'true'" />
     <Reference Include="Undo" Condition="'$(Verification)' == 'true'"><HintPath>$(MSBuildThisFileDirectory)Release\Undo.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="Foundation"><HintPath>$(MSBuildThisFileDirectory)..\Foundation\Release\Foundation.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Foundation"><HintPath>$(FoundationDll)</HintPath><Private>false</Private></Reference>
     <Reference Include="BepInEx"><HintPath>$(GameRoot)BepInEx\core\BepInEx.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="0Harmony" Condition="'$(Verification)' == 'true'"><HintPath>$(GameRoot)BepInEx\core\0Harmony.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Assembly-CSharp" Condition="'$(Verification)' == 'true'"><HintPath>$(GameRoot)KingdomInc_Data\Managed\Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
