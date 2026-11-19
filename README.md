@@ -1,5 +1,7 @@
 # Undo
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/S6V62AX30M)
+
 **Current release: 1.0.2 — for Kingdom Inc game version 1.0.14.**
 
 Undo and redo factory edits with **Ctrl+Z** and **Ctrl+Shift+Z**.
@@ -84,3 +86,9 @@ Close the game and remove BepInEx/plugins/Undo/. History adds no extra save fiel
 ## Credits
 
 Created by Urakka. Game artwork belongs to its respective owners.
+
+## Support
+
+If you enjoy these Kingdom Inc mods and tools, consider supporting development on Ko-fi!
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/S6V62AX30M)
