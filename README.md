@@ -1,6 +1,6 @@
 # Undo
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/urakkaamyx/tip)
+[![Support on Ko-fi](https://raw.githubusercontent.com/KingdomIncModding/.github/main/assets/kofi-button.png)](https://ko-fi.com/urakkaamyx/tip)
 
 **Current release: 1.0.2 — for Kingdom Inc game version 1.0.14.**
 
@@ -89,6 +89,4 @@ Created by Urakka. Game artwork belongs to its respective owners.
 
 ## Support
 
-If you enjoy these Kingdom Inc mods and tools, consider supporting development on Ko-fi!
-
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/urakkaamyx/tip)
+If you enjoy these Kingdom Inc mods and tools, consider supporting development on [**Ko-fi**](https://ko-fi.com/urakkaamyx/tip)!
